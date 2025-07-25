@@ -9,11 +9,19 @@ trigger:
 pool:
   vmImage: ubuntu-latest
 
-steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+variables:
+  azureSubscription: 'devops-aks'
+  aksResourceGroup: 'saxrg'
+  aksClusterName: 'saxcluster'
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+steps:
+- task: AzureCLI@2
+  inputs:
+    azureSubscription: $(azureSubscription)
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      echo "Logging into AKS cluster..."
+      az aks get-credentials --resource-group $(aksResourceGroup) --name $(aksClusterName) --overwrite-existing
+      kubectl get nodes
+  displayName: 'Connect to AKS and List Nodes'
