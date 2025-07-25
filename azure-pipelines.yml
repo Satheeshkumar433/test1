@@ -10,7 +10,7 @@ pool:
   vmImage: ubuntu-latest
 
 variables:
-  azureSubscription: 'devops-aks'
+  azureSubscription: 'aks-sp'
   aksResourceGroup: 'saxrg'
   aksClusterName: 'saxcluster'
 
