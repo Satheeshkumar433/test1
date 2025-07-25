@@ -15,11 +15,20 @@ variables:
   aksClusterName: 'saxcluster'
 
 steps:
-- task: Kubernetes@1
-  displayName: 'Connect to AKS and List Nodes'
+- task: AzureCLI@2
+  displayName: Connect to AKS (admin) & List Nodes
   inputs:
-    connectionType: 'Kubernetes Service Connection'
-    kubernetesServiceEndpoint: 'devops-aks'    # your K8s service connection
-    namespace: 'default'
-    command: 'get'
-    arguments: 'nodes'
+    azureSubscription: $(azureSubscription)
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      echo "Logging into AKS cluster as cluster-admin..."
+      az aks get-credentials \
+        --resource-group $(aksResourceGroup) \
+        --name $(aksClusterName) \
+        --overwrite-existing \
+        --admin
+
+      echo "Verifying node list:"
+      kubectl get nodes
+
