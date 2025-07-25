@@ -15,6 +15,11 @@ variables:
   aksClusterName: 'saxcluster'
 
 steps:
+- script: |
+    echo "Fetching public IP address of the Microsoft-hosted agent..."
+    curl ifconfig.me
+  displayName: Get Agent Public IP2
+  
 - task: AzureCLI@2
   displayName: Connect to AKS (admin) & List Nodes
   inputs:
