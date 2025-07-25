@@ -8,9 +8,18 @@ variables:
   azureSubscription: 'aks-sp'
   aksResourceGroup: 'saxrg'
   aksClusterName: 'saxcluster'
+  servicePrincipalId: '$(servicePrincipalId)'
+  servicePrincipalSecret: '$(servicePrincipalSecret)'
+  tenantId: '$(tenantId)'
 
 steps:
 - script: |
+    echo "Logging in with service principal..."
+    az login --service-principal \
+      --username $servicePrincipalId \
+      --password $servicePrincipalSecret \
+      --tenant $tenantId
+
     echo "Fetching public IP address of the Microsoft-hosted agent..."
     agent_ip=$(curl -s ifconfig.me)
     echo "Agent IP: $agent_ip"
@@ -20,7 +29,7 @@ steps:
       --resource-group $(aksResourceGroup) \
       --name $(aksClusterName) \
       --api-server-authorized-ip-ranges $agent_ip
-  displayName: Update AKS Authorized IP Ranges
+  displayName: Login & Update AKS Authorized IP Ranges
 
 - task: AzureCLI@2
   displayName: Connect to AKS (admin) & List Nodes
