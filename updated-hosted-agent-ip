@@ -1,0 +1,41 @@
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  azureSubscription: 'aks-sp'
+  aksResourceGroup: 'saxrg'
+  aksClusterName: 'saxcluster'
+
+steps:
+- script: |
+    echo "Fetching public IP address of the Microsoft-hosted agent..."
+    agent_ip=$(curl -s ifconfig.me)
+    echo "Agent IP: $agent_ip"
+
+    echo "Updating AKS authorized IP ranges to include agent IP..."
+    az aks update \
+      --resource-group $(aksResourceGroup) \
+      --name $(aksClusterName) \
+      --api-server-authorized-ip-ranges $agent_ip
+  displayName: Update AKS Authorized IP Ranges
+
+- task: AzureCLI@2
+  displayName: Connect to AKS (admin) & List Nodes
+  inputs:
+    azureSubscription: $(azureSubscription)
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      echo "Logging into AKS cluster as cluster-admin..."
+      az aks get-credentials \
+        --resource-group $(aksResourceGroup) \
+        --name $(aksClusterName) \
+        --overwrite-existing \
+        --admin
+
+      echo "Verifying node list:"
+      kubectl get nodes
+
