@@ -8,28 +8,24 @@ variables:
   azureSubscription: 'aks-sp'
   aksResourceGroup: 'saxrg'
   aksClusterName: 'saxcluster'
-  servicePrincipalId: '$(servicePrincipalId)'
-  servicePrincipalSecret: '$(servicePrincipalSecret)'
-  tenantId: '$(tenantId)'
 
 steps:
-- script: |
-    echo "Logging in with service principal..."
-    az login --service-principal \
-      --username $servicePrincipalId \
-      --password $servicePrincipalSecret \
-      --tenant $tenantId
+- task: AzureCLI@2
+  displayName: Get Agent IP and Update AKS Authorized IP Ranges
+  inputs:
+    azureSubscription: $(azureSubscription)
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      echo "Fetching public IP address of the Microsoft-hosted agent..."
+      agent_ip=$(curl -s ifconfig.me)
+      echo "Agent IP: $agent_ip"
 
-    echo "Fetching public IP address of the Microsoft-hosted agent..."
-    agent_ip=$(curl -s ifconfig.me)
-    echo "Agent IP: $agent_ip"
-
-    echo "Updating AKS authorized IP ranges to include agent IP..."
-    az aks update \
-      --resource-group $(aksResourceGroup) \
-      --name $(aksClusterName) \
-      --api-server-authorized-ip-ranges $agent_ip
-  displayName: Login & Update AKS Authorized IP Ranges
+      echo "Updating AKS authorized IP ranges to include agent IP..."
+      az aks update \
+        --resource-group $(aksResourceGroup) \
+        --name $(aksClusterName) \
+        --api-server-authorized-ip-ranges $agent_ip
 
 - task: AzureCLI@2
   displayName: Connect to AKS (admin) & List Nodes
@@ -47,4 +43,3 @@ steps:
 
       echo "Verifying node list:"
       kubectl get nodes
-
