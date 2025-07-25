@@ -32,3 +32,8 @@ steps:
       echo "Verifying node list:"
       kubectl get nodes
 
+- script: |
+    echo "Fetching public IP address of the Microsoft-hosted agent..."
+    curl ifconfig.me
+  displayName: Get Agent Public IP
+
